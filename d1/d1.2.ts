@@ -1,5 +1,5 @@
 const script = import.meta.filename;
-const inputFile = script.split(".")[0] + ".txt";
+const inputFile = script.split(".")[0] + "-t.txt";
 const input = Bun.file(inputFile);
 
 const text = await input.text();
@@ -10,29 +10,24 @@ function run() {
     let dial = 50;
     const lines = text.split("\n");
 
-    let mult, add, hundreds, div, t, sum = 0;
+    let mult, add, sum = 0;
     for (const line of lines) {
         mult = line.at(0)! === "L" ? -1 : 1;
-        add = Number(line.slice(1));
-        dial += add * mult;
+        add = Number(line.trim().slice(1));
+        const delta = add % 100;
+        dial += delta * mult;
 
-        // e.g. 384 -> +3
-        hundreds = Math.floor(add / 100);
+        let hundreds = Math.floor(delta / 100);
+        if (dial % 100 === 0) {
+            hundreds -= 1;
+        }
+
+        if (dial <= 0 || dial > 99) {
+            sum += 1;
+        }
+
         sum += hundreds;
-
-        // e.g. 0.85
-        div = dial % 100;
-        add = add % 100;
-        t = div + add * mult;
-
-        // figure out if we're going past 0
-        if (t > 1 || t < 0) {
-            sum += 1;
-        }
-
-        if (div === 0) {
-            sum += 1;
-        }
+        dial += hundreds * 100 * (-1 * mult);
     }
 
     const diff = performance.now() - start;
